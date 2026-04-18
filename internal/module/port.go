@@ -48,6 +48,11 @@ func (p PortModule) tcpConnected(target string, port int, timeout time.Duration)
 
 func (p PortModule) Run(targets []string) ([]config.Result, error) {
 	
+	if len(p.Ports) == 0 {
+		// 如果没有指定端口，默认扫描常见端口
+		p.Ports = config.DefaultPorts
+	}
+
 	e := engine.NewEngine(p.ScanConfig)
 
 	probe := func(ip string, port int) *config.Result {
@@ -59,6 +64,6 @@ func (p PortModule) Run(targets []string) ([]config.Result, error) {
 		return nil
 	}
 
-	return e.Run(probe, targets, nil)
+	return e.Run(probe, targets, p.Ports)
 
 }

@@ -18,7 +18,6 @@ Red-Team-Dedicated-Scanner/
 ```
 
 TODO:
-- 端口扫描系统 
-- 重构，把功能分清楚
 - debug 模式 
 - 扫描结果的存储 
+- 指纹识别

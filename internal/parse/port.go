@@ -7,19 +7,11 @@ import (
 	"strings"
 )
 
-var DefaultPorts = []int{
-	21, 22, 23, 25, 53, 80, 110, 111, 135, 139,
-	143, 443, 445, 993, 995, 1433, 1521, 2049,
-	3306, 3389, 5432, 5900, 6379, 8080, 8443,
-	9200, 27017,
-}
-
-
 // ParsePorts 解析端口字符串，支持多种格式
 func ParsePorts(portStr string) ([]int, error) {
 
 	var ports []int
-
+	
 	// 用于检查端口是否重复
 	seen := make(map[int]bool)
 

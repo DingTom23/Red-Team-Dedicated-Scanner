@@ -67,6 +67,10 @@ func (e *Engine) Run(probe ProbeFunc, targets []string, ports []int) ([]config.R
 	}
 	var tasks []task
 
+	rand.Shuffle(len(tasks), func(i, j int) {
+		tasks[i], tasks[j] = tasks[j], tasks[i]
+	})
+
 	if len(ports) == 0 {
         // 无端口 = 存活探测
         for _, ip := range ips {
@@ -80,7 +84,6 @@ func (e *Engine) Run(probe ProbeFunc, targets []string, ports []int) ([]config.R
             }
         }
     }
-
 
 	for _, t := range tasks {
 		

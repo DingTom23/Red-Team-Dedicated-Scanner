@@ -17,3 +17,8 @@ Red-Team-Dedicated-Scanner/
     └─services      // YAML 指纹规则文件
 ```
 
+TODO:
+- 端口扫描系统 
+- 重构，把功能分清楚
+- debug 模式 
+- 扫描结果的存储 

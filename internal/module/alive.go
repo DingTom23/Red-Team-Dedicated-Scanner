@@ -3,24 +3,25 @@
 package module
 
 import (
-	"context"
-	"net"
-	"sync"
-	"time"
 	"math/rand"
+	"net"
+	"time"
 
 	"golang.org/x/net/icmp"
 	"golang.org/x/net/ipv4"
-	"golang.org/x/time/rate"
+
+	"github.com/DingTom23/Red-Team-Dedicated-Scanner/internal/engine"
+	"github.com/DingTom23/Red-Team-Dedicated-Scanner/internal/config"
 )
 
 type AliveModule struct {
-	ScanConfig // 嵌入 ScanConfig 结构体，继承其字段
+	config.ScanConfig // 嵌入 ScanConfig 结构体，继承其字段
 }
 
 func (a AliveModule) Name() string {
 	return "alive"
 }
+
 
 // makeRandomBytes 生成一个随机字节切片，长度为 n，用于生成随机数据
 func makeRandomBytes(n int) []byte {
@@ -126,80 +127,21 @@ func icmpPing(target string, timeout time.Duration) bool {
 
 }
 
-
-func (a AliveModule) Run(targets []string) ([]Result, error) {
+func (a AliveModule) Run(targets []string) ([]config.Result, error) {
 	
-	ips, err := ParseTargets(targets)
+	e := engine.NewEngine(a.ScanConfig)
 
-	if err != nil {
-		return nil, err
+	probe := func (ip string, port int) *config.Result {
+		
+		if icmpPing(ip, a.Timeout) {
+			return &config.Result{Target: ip, Detail: "Host is alive."}
+		}
+		
+		return nil
 	}
-
-	var results []Result
 	
-	// goroutine   go 的轻量级线程，go func() 即可启动
-	// channel   goroutine 之间传递数据的管道
-	// sync.WaitGroup   等待一组 goroutine 完成 
-
-	// 使用互斥锁和 WaitGroup 来处理并发访问 results 切片
-	var mu sync.Mutex
-	var wg sync.WaitGroup
-
-	// 创建一个速率限制器，限制每秒探测次数
-	// func NewLimiter(r Limit, b int) *Limiter
-	// r   rate.Limit	令牌产生速率（每秒产生多少个令牌）
-	// b   int	令牌桶大小（最多存储多少个令牌）
-	limiter := rate.NewLimiter(rate.Limit(a.RateLimit), a.Burst) 
-
-	sem := make(chan struct{}, a.Concurrency)
-
-	for _, ip := range ips {
-
-		wg.Add(1) // 增加 WaitGroup 计数器
-
-		sem <- struct{}{} // 获取一个信号量，限制并发数量
-
-		// 启动探活
-		go func (ip string)  {
-
-			defer wg.Done() // 在函数结束时减少 WaitGroup 计数器
-			defer func() { <-sem }() // 释放信号量
-			
-			// 在每次探测前等待速率限制器允许，确保不超过设定的速率限制
-			limiter.Wait(context.Background())
-
-			if a.Jitter > 0 {
-				
-				// 计算基本延迟和最大抖动时间，增加探测的随机性，避免被防火墙等安全设备识别和阻止
-				baseDelay := time.Second / time.Duration(a.RateLimit)
-
-				// 计算最大抖动时间，基于基本延迟和用户设置的抖动比例
-				maxJitter := time.Duration(float64(baseDelay) * a.Jitter)
-
-				// 生成一个随机的抖动时间，范围在 0 到 maxJitter 之间
-				jitter := time.Duration(rand.Int63n(int64(maxJitter)))
-
-				// 等待基本延迟加上随机抖动时间，确保探测的时间具有随机性
-				time.Sleep(baseDelay + jitter)
-			}
-
-			if icmpPing(ip, a.Timeout) {
-
-				mu.Lock() // 加锁，确保对 results 切片的并发安全访问
-				
-				results = append(results, Result{
-					Target: ip,
-					Detail: "Host is alive",
-				})
-				mu.Unlock() // 解锁
-			}
-			
-		}(ip) // 闭包变量捕获: 将 ip 作为参数传递给匿名函数，避免闭包问题
-		// 异步执行 还没执行就继续了 等着执行的时候参数就变了，所以要传参
-	}
-
-	wg.Wait() // 等待所有 goroutine 完成
-
-	return results, nil
+	return e.Run(probe, targets, nil)
+	
 }
+
 

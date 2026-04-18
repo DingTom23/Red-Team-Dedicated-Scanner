@@ -1,6 +1,5 @@
-// CIDR 解析
-
-package module
+// 解析目标地址的工具函数，支持单个 IP 和 CIDR 范围
+package parse
 
 import (
 	"fmt"

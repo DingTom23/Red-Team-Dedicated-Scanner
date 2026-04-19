@@ -5,13 +5,15 @@ package module
 import (
 	"math/rand"
 	"net"
+	"strconv"
 	"time"
 
 	"golang.org/x/net/icmp"
 	"golang.org/x/net/ipv4"
 
-	"github.com/DingTom23/Red-Team-Dedicated-Scanner/internal/engine"
 	"github.com/DingTom23/Red-Team-Dedicated-Scanner/internal/config"
+	"github.com/DingTom23/Red-Team-Dedicated-Scanner/internal/engine"
+	"github.com/DingTom23/Red-Team-Dedicated-Scanner/internal/priv"
 )
 
 type AliveModule struct {
@@ -34,6 +36,22 @@ func makeRandomBytes(n int) []byte {
 	
 	// 返回随机字节切片
 	return b
+}
+
+// tcpPing 函数用于一般用户使用的 TCP 端口探活
+func tcpPing(target string, timeout time.Duration) bool {
+
+	ports := config.DefaultPortsforAliveScan
+	for _, port := range ports {
+		address := net.JoinHostPort(target, strconv.Itoa(port))
+		conn, err := net.DialTimeout("tcp", address, timeout)
+		if err == nil {
+			conn.Close()
+			return true // 连接成功，目标主机存活
+		}
+	}
+
+	return false // 所有端口连接失败，目标主机可能不存活
 }
 
 // icmpPing 函数用于发送 ICMP Echo 请求并等待回复，判断目标主机是否存活
@@ -122,7 +140,6 @@ func icmpPing(target string, timeout time.Duration) bool {
 			return true
 		}
 		
-	
 	}
 
 }
@@ -130,13 +147,27 @@ func icmpPing(target string, timeout time.Duration) bool {
 func (a AliveModule) Run(targets []string) ([]config.Result, error) {
 	
 	e := engine.NewEngine(a.ScanConfig)
+	
+	// 检查是否具有原始套接字权限
+	hasrawPriv := priv.HasRawSocket()
 
+	// 根据权限选择探测方法，如果有原始套接字权限，使用 ICMP 探测，否则使用 TCP 探测
 	probe := func (ip string, port int) *config.Result {
 		
-		if icmpPing(ip, a.Timeout) {
-			return &config.Result{Target: ip, Detail: "Host is alive."}
+		if hasrawPriv {
+			icmpPing(ip, a.Timeout)
+			return &config.Result{
+				Target: ip,
+				Detail: "Host is Alive (ICMP).",
+			}
+		} else {
+			tcpPing(ip, a.Timeout)
+			return &config.Result{
+				Target: ip,
+				Detail: "Host is Alive (TCP).",
+			}
 		}
-		
+
 		return nil
 	}
 	

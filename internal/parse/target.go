@@ -56,8 +56,6 @@ func ParseTargets(target []string) ([]string, error) {
 			// ipnet.IP	192.168.1.0	网络起始地址
 			// ipnet.Mask ffffff00（即 255.255.255.0） 子网掩码
 
-
-
 			if err != nil {
 				return nil, err
 			}

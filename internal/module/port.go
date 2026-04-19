@@ -50,7 +50,7 @@ func (p PortModule) Run(targets []string) ([]config.Result, error) {
 	
 	if len(p.Ports) == 0 {
 		// 如果没有指定端口，默认扫描常见端口
-		p.Ports = config.DefaultPorts
+		p.Ports = config.DefaultTCPPorts
 	}
 
 	e := engine.NewEngine(p.ScanConfig)

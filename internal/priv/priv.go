@@ -13,8 +13,9 @@ import (
 // Linux 需要 root 或 CAP_NET_RAW，Windows 需要管理员
 func HasRawSocket() bool {
 
+	// net.ListenPacket："ip", "ip4", "ip6" + ":" + 协议名或协议号
 	// 原理：尝试监听 ICMP 协议，成功说明有权限，失败说明没有
-	conn, err := net.Listen("ipv4:icmp", "0.0.0.0")
+	conn, err := net.ListenPacket("ip4:icmp", "0.0.0.0")
 	if err != nil {
 		// 监听失败说明没有权限
 		return false
@@ -32,13 +33,13 @@ func checkAdminWindows() bool {
 
 	//原理：尝试创建一个命名管道，只有管理员才能创建成功
 	pipeName := fmt.Sprintf(`\\.\pipe\scanner-admin-check-%d`, os.Getpid())
-	
+
 	// os.create 创建一个命名管道，如果创建成功说明有管理员权限
 	f, err := os.Create(pipeName)
 	if err != nil {
 		return false
 	}
-	
+
 	f.Close()
 	return true
 }
@@ -48,14 +49,14 @@ func checkAdminWindows() bool {
 func isAdmin() bool {
 
 	switch runtime.GOOS {
-		case "windows":
-			return checkAdminWindows()
-		case "linux", "darwin":
-			return os.Geteuid() == 0
-		default:
-			return false
+	case "windows":
+		return checkAdminWindows()
+	case "linux", "darwin":
+		return os.Geteuid() == 0
+	default:
+		return false
 	}
-	
+
 }
 
 // PS: 暂时不使用
@@ -72,11 +73,11 @@ func RequireElevate() error {
 	if err != nil {
 		return err
 	}
-	
+
 	// 获取命令行参数
 	args := os.Args[1:]
 
-	// runas /user:Administrator 
+	// runas /user:Administrator
 	cmd := exec.Command("runas", "/user:Administrator", exe)
 	cmd.Args = append(cmd.Args, args...)
 

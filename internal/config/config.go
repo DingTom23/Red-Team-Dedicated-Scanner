@@ -28,11 +28,35 @@ type ScanConfig struct {
 
 // Result 结构体定义了扫描结果的格式，包含目标地址、端口号、服务信息等字段
 type Result struct {
+
+	// 目标地址
 	Target string
+
+	// 端口号
 	Port int
+
+	// 服务信息
 	Service string
+
+	// 服务版本信息
 	Version string
+
+	// 探测方法 / 机制类别
+	Method string
+
+	// 本次结果成立的直接依据
+	// eg.
+	// ICMP 成功
+	//   Method: "icmp"
+	//   Reason: "echo-reply"
+	// TCP 成功
+	//   Method: "tcp"
+	//   Reason: "tcp-connect"
+	Reason string
+
+	// 详细信息 - 给人读的
 	Detail string
+
 }
 
 // Module 接口定义了所有扫描模块的通用方法

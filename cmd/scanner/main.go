@@ -1,7 +1,9 @@
 package main
 
 func main() {
+    
     if err := rootCmd.Execute(); err != nil {
         exitError(err)
     }
+
 }

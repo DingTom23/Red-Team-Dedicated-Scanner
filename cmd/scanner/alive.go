@@ -10,6 +10,7 @@ import (
 )
 
 func init() {
+
     aliveCmd := &cobra.Command{
         Use:   "alive",
         Short: "Host alive detection",
@@ -34,7 +35,12 @@ func init() {
             }
 
             for _, result := range results {
-                fmt.Printf("[%s] %s - %s\n", m.Name(), result.Target, result.Detail)
+                fmt.Printf("[%s] %s - %s(%s/%s)\n", m.Name(), 
+                result.Target, 
+                result.Detail,
+                result.Method,
+                result.Reason,
+            )
             }
         },
     }
@@ -55,7 +61,7 @@ func init() {
 	aliveCmd.Flags().IntVarP(&concurrency, "concurrency", "c", 50, "Number of concurrent probes")
     
 	// 添加超时时间参数
-	aliveCmd.Flags().DurationVarP(&timeout, "timeout", "T", 5 * time.Second, "Probe timeout duration")
+	aliveCmd.Flags().DurationVarP(&timeout, "timeout", "T", 3*time.Second, "Probe timeout duration")
     
 	// 添加速率限制参数
 	aliveCmd.Flags().IntVarP(&rateLimit, "rate", "r", 100, "Rate limit (Packets per second)")
@@ -68,4 +74,5 @@ func init() {
 
 	// 将 aliveCmd 添加到根命令
     rootCmd.AddCommand(aliveCmd)
+    
 }

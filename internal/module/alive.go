@@ -4,6 +4,7 @@ package module
 
 import (
 
+
 	"github.com/DingTom23/Red-Team-Dedicated-Scanner/internal/config"
 	"github.com/DingTom23/Red-Team-Dedicated-Scanner/internal/engine"
 	"github.com/DingTom23/Red-Team-Dedicated-Scanner/internal/priv"
@@ -11,7 +12,9 @@ import (
 )
 
 type AliveModule struct {
+
 	config.ScanConfig // 嵌入 ScanConfig 结构体，继承其字段
+
 }
 
 func (a AliveModule) Name() string {

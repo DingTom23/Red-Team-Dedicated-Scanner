@@ -11,6 +11,7 @@ package main
 import (
 	"fmt"
 	"time"
+	"encoding/json"
 
 	"github.com/spf13/cobra"
 
@@ -19,8 +20,19 @@ import (
 	"github.com/DingTom23/Red-Team-Dedicated-Scanner/internal/parse"
 )
 
+
+// 定义扫描输出结构体
+	type ScanOutput struct {
+    	Alive []config.Result `json:"alive"`
+    	Port  []config.Result `json:"port"`
+}
+
 func init() {
 
+	// 定义 JSON 输出标志
+	var jsonOutput bool
+	
+	// 定义扫描端口
 	var portStr string
 	
 	scanCmd := &cobra.Command{
@@ -31,7 +43,7 @@ func init() {
 		Run: func (cmd *cobra.Command, args []string) {
 			
 			cfg := config.ScanConfig{ 
-				
+
 				Concurrency: concurrency,
 				Timeout:     timeout,
 				RateLimit:   rateLimit,
@@ -77,25 +89,42 @@ func init() {
 				exitError(err)
 			}
 
+			// json 输出结果
+			if jsonOutput {
+				
+				data, err := json.MarshalIndent(ScanOutput{
+					Alive: aliveResults,
+					Port: portResults,
+				}, "", "  ")
+				
+				if err != nil {
+					exitError(err)
+				}
+
+				fmt.Println(string(data))
+				return
+			}
+
 			// 输出存活主机和开放端口的结果
 			for _, result := range aliveResults {
                 fmt.Printf("[scan][%s] %s - %s(%s/%s)\n", 
-				aliveModule.Name(),
-                result.Target,
-                result.Detail,
-                result.Method,
-                result.Reason,
-            )
+					aliveModule.Name(),
+					result.Target,
+					result.Detail,
+					result.Method,
+					result.Reason,
+            	)
             }
 
+			// 输出开放端口的结果
 			for _, result := range portResults {
                 fmt.Printf("[scan][%s] %s:%d - %s(%s/%s)\n", 
-				portModule.Name(),
-                result.Target,
-                result.Port,
-                result.Detail,
-                result.Method,
-                result.Reason,
+					portModule.Name(),
+					result.Target,
+					result.Port,
+					result.Detail,
+					result.Method,
+					result.Reason,
             	)
             }
 			
@@ -112,6 +141,7 @@ func init() {
 	scanCmd.Flags().IntVarP(&rateLimit, "rate", "r", 100, "Rate limit (Packets per second)")
 	scanCmd.Flags().IntVarP(&burst, "burst", "b", 10, "Burst limit")
 	scanCmd.Flags().Float64VarP(&jitter, "jitter", "j", 0.5, "Jitter factor (0.0 - 1.0)")
+	scanCmd.Flags().BoolVar(&jsonOutput, "json", false, "Output results in JSON format")
 
 	rootCmd.AddCommand(scanCmd)
 

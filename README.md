@@ -19,5 +19,7 @@ Red-Team-Dedicated-Scanner/
 
 TODO:
 - debug 模式 
+- 配置文件支持
+- json 输出可选择
 - 扫描结果的存储 
 - 指纹识别

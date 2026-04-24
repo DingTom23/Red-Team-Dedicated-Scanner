@@ -30,19 +30,19 @@ type ScanConfig struct {
 type Result struct {
 
 	// 目标地址
-	Target string
+	Target string `json:"target"`
 
 	// 端口号
-	Port int
+	Port int `json:"port,omitempty"` // 如果这个字段是零值，就别输出
 
 	// 服务信息
-	Service string
+	Service string `json:"service,omitempty"`
 
 	// 服务版本信息
-	Version string
+	Version string `json:"version,omitempty"`
 
 	// 探测方法 / 机制类别
-	Method string
+	Method string `json:"method,omitempty"`
 
 	// 本次结果成立的直接依据
 	// eg.
@@ -52,10 +52,10 @@ type Result struct {
 	// TCP 成功
 	//   Method: "tcp"
 	//   Reason: "tcp-connect"
-	Reason string
+	Reason string `json:"reason,omitempty"`
 
 	// 详细信息 - 给人读的
-	Detail string
+	Detail string `json:"detail,omitempty"`
 
 }
 
@@ -70,5 +70,9 @@ type Module interface {
 	// 传入 targets 是参数名 ，[]string 是参数类型，表示一个字符串切片
 	// 返回 []Result 是我们定义的结构体的切片
 	Run(targets []string) ([]Result, error)
+}
+
+type ScanOutPut struct {
+	
 }
 

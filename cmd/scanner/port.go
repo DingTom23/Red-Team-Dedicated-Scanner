@@ -3,6 +3,7 @@ package main
 import (
     "fmt"
 	"time"
+    "encoding/json"
 
     "github.com/DingTom23/Red-Team-Dedicated-Scanner/internal/config"
     "github.com/DingTom23/Red-Team-Dedicated-Scanner/internal/module"
@@ -12,6 +13,10 @@ import (
 
 func init() {
     
+    // 定义 JSON 输出标志
+    var jsonOutput bool
+
+    // 定义扫描端口
     var portStr string
 
     portCmd := &cobra.Command{
@@ -46,8 +51,23 @@ func init() {
                 return
             }
 
+            if jsonOutput {
+                
+                data, err := json.MarshalIndent(results, "", "  ")
+                if err != nil {
+                    exitError(err)
+                }
+
+                fmt.Println(string(data))
+                return
+            }
+
             for _, result := range results {
-                fmt.Printf("[%s] %s:%d - %s\n", m.Name(), result.Target, result.Port, result.Detail)
+                fmt.Printf("[%s] %s:%d - %s\n", m.Name(), 
+                result.Target, 
+                result.Port, 
+                result.Detail,
+                )
             }
         },
     }
@@ -60,6 +80,7 @@ func init() {
     portCmd.Flags().IntVarP(&rateLimit, "rate", "r", 100, "Rate limit (Packets per second)")
     portCmd.Flags().IntVarP(&burst, "burst", "b", 10, "Burst limit")
     portCmd.Flags().Float64VarP(&jitter, "jitter", "j", 0.5, "Jitter factor (0.0 - 1.0)")
+    portCmd.Flags().BoolVar(&jsonOutput, "json", false, "Output results in JSON format")
 
     rootCmd.AddCommand(portCmd)
 }

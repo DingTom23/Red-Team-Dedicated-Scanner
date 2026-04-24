@@ -1,15 +1,21 @@
 package main
 
 import (
+
     "fmt"
 	"time"
+    "encoding/json"
 
     "github.com/DingTom23/Red-Team-Dedicated-Scanner/internal/config"
     "github.com/DingTom23/Red-Team-Dedicated-Scanner/internal/module"
     "github.com/spf13/cobra"
+
 )
 
 func init() {
+
+    // 定义 JSON 输出标志
+    var jsonOutput bool
 
     aliveCmd := &cobra.Command{
         Use:   "alive",
@@ -29,18 +35,30 @@ func init() {
                 exitError(err)
             }
 
+            // 如果没有存活主机，打印提示信息
             if len(results) == 0 {
                 fmt.Println("No alive hosts found.")
                 return
             }
 
+            // 打印 JSON 格式结果
+            if jsonOutput {
+                data, err := json.MarshalIndent(results, "", "  ")
+                if err != nil {
+                    exitError(err)
+                }
+                fmt.Println(string(data))
+                return
+            }
+
+            // 打印普通格式结果
             for _, result := range results {
                 fmt.Printf("[%s] %s - %s(%s/%s)\n", m.Name(), 
                 result.Target, 
                 result.Detail,
                 result.Method,
                 result.Reason,
-            )
+                )
             }
         },
     }
@@ -71,6 +89,9 @@ func init() {
 
 	// 添加抖动参数	
 	aliveCmd.Flags().Float64VarP(&jitter, "jitter", "j", 0.5, "Jitter factor (0.0 - 1.0)")
+
+    // 添加 JSON 输出选项
+    aliveCmd.Flags().BoolVar(&jsonOutput, "json", false, "Output results in JSON format")
 
 	// 将 aliveCmd 添加到根命令
     rootCmd.AddCommand(aliveCmd)

@@ -2,12 +2,14 @@
 package module
 
 import (
+
 	"net"
 	"strconv"
 	"time"
 
 	"github.com/DingTom23/Red-Team-Dedicated-Scanner/internal/config"
 	"github.com/DingTom23/Red-Team-Dedicated-Scanner/internal/engine"
+
 )
 
 // PortModule 结构体定义了端口扫描模块的配置
@@ -58,7 +60,13 @@ func (p PortModule) Run(targets []string) ([]config.Result, error) {
 	probe := func(ip string, port int) *config.Result {
 		
 		if p.tcpConnected(ip, port, p.Timeout) {
-			return &config.Result{Target: ip, Port: port, Detail: "Port is open."}
+			return &config.Result{
+				Target: ip,
+				Port:   port,
+				Method: "tcp",
+				Reason: "tcp-connect",
+				Detail: "Port is open.",
+			}
 		}
 		
 		return nil

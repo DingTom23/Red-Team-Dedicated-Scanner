@@ -6,7 +6,6 @@ import (
 	"net"
 	"time"
 
-	"github.com/Dreamacro/clash/component/iface"
 )
 
 const (

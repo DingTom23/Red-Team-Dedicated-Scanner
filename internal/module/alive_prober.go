@@ -42,11 +42,11 @@ func (p ICMPProber) Name() string {
 }
 
 
-func (p ICMPProber) Probe(ip string, timeout time.Duration) *config.Result {
+func (p ICMPProber) Probe(target string, timeout time.Duration) *config.Result {
 
-	if icmpPing(ip, timeout) {
+	if icmpPing(target, timeout) {
 		return &config.Result{
-			Target: ip,
+			Target: target,
 			Detail: "Host is alive (ICMP).",
 			Method: "icmp",
 			Reason: "echo-reply",

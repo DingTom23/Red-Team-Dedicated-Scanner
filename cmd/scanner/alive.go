@@ -17,6 +17,9 @@ func init() {
     // 定义 JSON 输出标志
     var jsonOutput bool
 
+    // 定义探测方法标志
+    var method string
+
     aliveCmd := &cobra.Command{
         Use:   "alive",
         Short: "Host alive detection",
@@ -29,7 +32,12 @@ func init() {
                 Jitter:      jitter,
             }
 
-            m := module.AliveModule{ScanConfig: cfg}
+            // 创建探活模块实例
+            m := module.AliveModule{
+                ScanConfig: cfg,
+                ProbeMethod: method,
+            }
+
             results, err := m.Run([]string{target})
             if err != nil {
                 exitError(err)
@@ -92,6 +100,9 @@ func init() {
 
     // 添加 JSON 输出选项
     aliveCmd.Flags().BoolVar(&jsonOutput, "json", false, "Output results in JSON format")
+
+    // 添加探测方法选项
+    aliveCmd.Flags().StringVarP(&method, "method", "m", "auto", "Probe method (auto, icmp, tcp, arp)")
 
 	// 将 aliveCmd 添加到根命令
     rootCmd.AddCommand(aliveCmd)

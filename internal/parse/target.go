@@ -60,10 +60,21 @@ func ParseTargets(target []string) ([]string, error) {
 				return nil, err
 			}
 
+
+			// 会有bug吗?
+			var cidrIPs []string
+
 			// 遍历 CIDR 范围内的所有 IP 地址
 			// Contains 控制：还在网段内就继续循环
 			for ip := ip.Mask(ipnet.Mask); ipnet.Contains(ip); incIP(ip) {
-				ips = append(ips, ip.String())
+				cidrIPs = append(cidrIPs, ip.String())
+			}
+
+			// 去掉网络地址和广播地址
+			if len(cidrIPs) > 2 {
+				ips = append(ips, cidrIPs[1:len(cidrIPs)-1]...) // 去掉网络地址和广播地址
+			} else {
+				ips = append(ips, cidrIPs...) // 如果 CIDR 范围内的 IP 不多于 2 个，就直接添加全部
 			}
 
 		}else { // 如果不包含 "/"，说明是单个 IP 地址

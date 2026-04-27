@@ -1,14 +1,18 @@
 package main
 
 import (
+    
     "fmt"
 	"time"
     "encoding/json"
 
+    "github.com/spf13/cobra"
+
     "github.com/DingTom23/Red-Team-Dedicated-Scanner/internal/config"
     "github.com/DingTom23/Red-Team-Dedicated-Scanner/internal/module"
     "github.com/DingTom23/Red-Team-Dedicated-Scanner/internal/parse"
-    "github.com/spf13/cobra"
+    
+
 )
 
 func init() {

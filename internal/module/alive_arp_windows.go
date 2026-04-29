@@ -11,13 +11,16 @@ import (
 ) 
 
 var (
+	
 	// 加载 Windows 的 iphlpapi.dll
 	// iphlpapi.dll 里有一些和 IP/网络辅助功能相关的系统函数
 	// SendARP 就在这个 DLL 里
 	iphlpapi = syscall.NewLazyDLL("iphlpapi.dll")
+	
 	// 从刚才加载的 iphlpapi.dll 里找到名叫 SendARP 的函数
 	// 后面通过 procSendARP.Call(...) 调用它。
 	procSendARP = iphlpapi.NewProc("SendARP")
+
 )
 
 func arpPing(target string, timeout time.Duration) bool {

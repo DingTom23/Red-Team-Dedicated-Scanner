@@ -24,31 +24,40 @@ var (
 )
 
 func arpPing(target string, timeout time.Duration) bool {
-	
-	_ = timeout // 目前这个函数还没有实现超时功能，先占位
 
 	// 192.168.1.10 -> [192, 168, 1, 10]
 	ip := net.ParseIP(target).To4()
 	if ip == nil {
 		return false // 不是有效的 IPv4 地址
 	}
-
+	
 	// 按“小端序”转换成一个 uint32 整数
 	// [192, 168, 1, 10]  -> 167880896
 	dstIP := binary.LittleEndian.Uint32(ip)
 
-	// 声明一个长度固定为 6 的字节数组，用来接收 MAC 地址
-	// AA:BB:CC:DD:EE:FF 就是 6 个字节
-	var mac [6]byte
-	macLen := uint32(len(mac))
+	done := make(chan bool, 1)
 
-	ret, _, _ := procSendARP.Call(
-		uintptr(dstIP), // 目标 IP 地址
-		0, // srcIP 设置为 0，表示让系统自动选择发送接口
-		uintptr(unsafe.Pointer(&mac[0])), // 接收 MAC 地址的缓冲区
-		uintptr(unsafe.Pointer(&macLen)), // 接收 MAC 地址长度的缓冲区
-	)
-	
-	return ret == 0  && macLen > 0// 如果返回值为 0，说明调用成功，目标主机在线
+	go func() {
+		// 声明一个长度固定为 6 的字节数组，用来接收 MAC 地址
+		// AA:BB:CC:DD:EE:FF 就是 6 个字节
+		var mac [6]byte
+		macLen := uint32(len(mac))
+
+		ret, _, _ := procSendARP.Call(
+			uintptr(dstIP), // 目标 IP 地址
+			0, // srcIP 设置为 0，表示让系统自动选择发送接口
+			uintptr(unsafe.Pointer(&mac[0])), // 接收 MAC 地址的缓冲区
+			uintptr(unsafe.Pointer(&macLen)), // 接收 MAC 地址长度的缓冲区
+		)	
+		// 如果返回值为 0，说明调用成功，目标主机在线
+		done <- (ret == 0  && macLen > 0)
+	}()
+
+	select {
+	case result := <-done:
+		return result
+	case <- time.After(timeout):
+		return false
+	}
 
 }

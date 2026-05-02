@@ -285,18 +285,25 @@ func arpPing(target string, timeout time.Duration) bool {
 	defer syscall.Close(fd)
 
 	// 设置接收超时
+	// Go 内部存的是纳秒
     tv := syscall.Timeval{
         Sec:  int64(timeout / time.Second),
         Usec: int64(timeout % time.Second) / 1000,
     }
+	// SOL = Socket Level，说明这个选项是作用于"套接字本身"
+	// SO = Socket Option, RCVTIMEO = Receive Timeout 接收超时
     if err := syscall.SetsockoptTimeval(fd, syscall.SOL_SOCKET, syscall.SO_RCVTIMEO, &tv); err != nil {
         return false
     }
 
     // 绑定到目标网卡
+	// 链路层地址结构体
     sa := syscall.SockaddrLinklayer{
+		// 0x0806 → 只收 ARP 包
         Protocol: htons(etherTypeARP),
+		// 网卡的系统编号（比如 eth0 = 2）
         Ifindex:  iface.Index,
+		// 硬件地址长度 = MAC 地址 6 字节
         Halen:    6,
     }
     if err := syscall.Bind(fd, &sa); err != nil {
@@ -320,6 +327,7 @@ func arpPing(target string, timeout time.Duration) bool {
     // 循环接收 ARP Reply
     buf := make([]byte, 1500)
     for {
+		// 接受回包
         n, _, err := syscall.Recvfrom(fd, buf, 0)
         if err != nil {
             return false
@@ -329,4 +337,5 @@ func arpPing(target string, timeout time.Duration) bool {
             return true
         }
     }
+
 }
